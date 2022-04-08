@@ -1,11 +1,11 @@
 const mysql = require("mysql");
-const dbConfig = require("../config/db.config.js");
+var migration = require('mysql-migrations');
 
-var connection = mysql.createConnection({
-  host: dbConfig.HOST,
-  user: dbConfig.USER,
-  password: dbConfig.PASSWORD,
-  database: dbConfig.DB,
+const connection = mysql.createPool({
+  host: 'localhost',
+  user: 'test',
+  password: 'test',
+  database: 'db',
   typeCast: function (field, next) {
     if (field.type === "JSON") {
       return JSON.parse(field.string());
@@ -15,9 +15,8 @@ var connection = mysql.createConnection({
   },
 });
 
-connection.connect((error) => {
-  if (error) throw error;
-  console.log("Successfully connected to the database.");
+migration.init(connection, __dirname + '/migrations', function() {
+  console.log("finished running migrations");
 });
 
 module.exports = connection;

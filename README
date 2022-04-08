@@ -1,0 +1,6 @@
+#Start project
+
+- docker-compose up -d
+- npm i
+- node app/models/db.js up
+- node server.js
