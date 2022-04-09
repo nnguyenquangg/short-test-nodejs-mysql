@@ -8,6 +8,9 @@ module.exports = (sequelize, DataTypes) => {
       levelName: {
         type: DataTypes.STRING,
       },
+      parentId: {
+          type: DataTypes.INTEGER
+      },
       elements: DataTypes.JSON,
     },
     {

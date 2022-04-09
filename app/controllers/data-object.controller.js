@@ -1,3 +1,5 @@
+const Op = require("sequelize").Op;
+const { keyBy } = require("lodash");
 const db = require("./../models/db");
 const { DataObject, Level } = db;
 
@@ -53,8 +55,8 @@ exports.findById = async (req, res) => {
     });
 
     if (!dataObject) {
-        res.status(404).send('Not found')
-        return;
+      res.status(404).send("Not found");
+      return;
     }
 
     res.send(dataObject);
@@ -77,6 +79,74 @@ exports.softDelete = async (req, res) => {
       },
     });
     res.sendStatus(200);
+  } catch (err) {
+    res
+      .status(500)
+      .send({
+        message:
+          err.message || "Some error occurred while query the DataObject.",
+      })
+      .end();
+  }
+};
+
+exports.setParentLink = async (req, res) => {
+  try {
+    const dataObject = await DataObject.findOne({
+      where: { id: req.params.id },
+    });
+
+    if (!dataObject) {
+      res.status(404).send("Data Object Not found");
+      return;
+    }
+
+    const { body } = req;
+
+    if (body.parentId === body.childrenId) {
+      res.status(400).send("Parent Level and Children Level should different");
+      return;
+    }
+
+    const levels = await Level.findAll({
+      where: {
+        dataObjectId: dataObject.id,
+        id: {
+          [Op.in]: [body.parentId, body.childrenId],
+        },
+      },
+    });
+
+    if (levels.length !== 2) {
+      res
+        .status(400)
+        .send("ParentId or ChildrenId is not belong to DataObject");
+      return;
+    }
+
+    const levelMapped = keyBy(levels, "id");
+
+    await Level.update(
+      {
+        parentId: body.parentId,
+      },
+      { where: { id: body.childrenId } }
+    );
+
+    if (levelMapped[body.parentId].parentId === body.childrenId) {
+      await Level.update(
+        {
+          parentId: null,
+        },
+        { where: { id: body.parentId } }
+      );
+    }
+
+    const result = await DataObject.findByPk(req.params.id, {
+      include: ["levels"],
+    });
+
+    res.send(result);
   } catch (err) {
     res
       .status(500)
