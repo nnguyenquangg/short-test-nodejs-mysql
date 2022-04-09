@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.json('Hello world');
+  res.json("Hello world");
 });
 
 require("./app/routes/data-object.routes.js")(app);

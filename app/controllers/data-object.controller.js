@@ -1,5 +1,5 @@
-const DataObject = require("../models/data-object.model");
-const Level = require("../models/level.model");
+const db = require("./../models/db");
+const { DataObject, Level } = db;
 
 exports.create = async (req, res) => {
   try {
@@ -8,80 +8,76 @@ exports.create = async (req, res) => {
         message: "Content can not be empty!",
       });
     }
-
-    const dataObject = new DataObject({
+    const newDataObject = await DataObject.create({
       name: req.body.name,
     });
-   
-    await DataObject.create(
-      dataObject,
-      async (err, newObject) => {
-        if (err) {
-         throw new Error(err);
-        } else {
-          for await (const level of req.body.levels) {
-            await Level.create(
-              { ...level, dataObjectId: newObject.id },
-              (err, newLevel) => {
-                if (err) {
-                  throw new Error(err);
-                }
-              }
-            );
-          }
-          res.send(true).end()
-        }
-      }
-    );
+
+    for (const level of req.body.levels) {
+      await Level.create({
+        ...level,
+        dataObjectId: newDataObject.dataValues.id,
+      });
+    }
+
+    res.send(newDataObject);
   } catch (err) {
-    res.status(500).send({
-      message:
-        e.message || "Some error occurred while creating the DataObject.",
-    }).end();
+    res
+      .status(500)
+      .send({
+        message:
+          err.message || "Some error occurred while creating the DataObject.",
+      })
+      .end();
   }
 };
 
-exports.getAll = (_, res) => {
-
-  DataObject.getAll({}, (err, data) => {
-    if (err)
-      res.status(500).send({
+exports.getAll = async (_, res) => {
+  try {
+    const dataObjects = await DataObject.findAll({ include: ["levels"] });
+    res.send(dataObjects);
+  } catch (err) {
+    res
+      .status(500)
+      .send({
         message:
-          err.message || "Some error occurred while retrieving data objects."
-      });
-    else res.send(data);
-  });
+          err.message || "Some error occurred while query all DataObject.",
+      })
+      .end();
+  }
 };
 
-exports.findById = (req, res) => {
-  DataObject.findById(req.params.id, (err, data) => {
-    if (err) {
-      if (err.kind === "not_found") {
-        res.status(404).send({
-          message: `Not found data object with id ${req.params.id}.`
-        });
-      } else {
-        res.status(500).send({
-          message: "Error retrieving data object with id " + req.params.id
-        });
-      }
-    } else res.send(data);
-  });
+exports.findById = async (req, res) => {
+  try {
+    const dataObjects = await DataObject.findByPk(req.params.id, {
+      include: ["levels"],
+    });
+    res.send(dataObjects);
+  } catch (err) {
+    res
+      .status(500)
+      .send({
+        message:
+          err.message || "Some error occurred while query the DataObject.",
+      })
+      .end();
+  }
 };
 
-exports.softDelete = (req, res) => {
-  DataObject.softDelete(req.params.id, (err, data) => {
-    if (err) {
-      if (err.kind === "not_found") {
-        res.status(404).send({
-          message: `Not found data object with id ${req.params.id}.`
-        });
-      } else {
-        res.status(500).send({
-          message: "Could not delete data object with id " + req.params.id
-        });
-      }
-    } else res.send({ message: `Data object was deleted successfully!` });
-  });
+exports.softDelete = async (req, res) => {
+  try {
+    await DataObject.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+    res.sendStatus(200);
+  } catch (err) {
+    res
+      .status(500)
+      .send({
+        message:
+          err.message || "Some error occurred while query the DataObject.",
+      })
+      .end();
+  }
 };
-
