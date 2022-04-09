@@ -48,10 +48,16 @@ exports.getAll = async (_, res) => {
 
 exports.findById = async (req, res) => {
   try {
-    const dataObjects = await DataObject.findByPk(req.params.id, {
+    const dataObject = await DataObject.findByPk(req.params.id, {
       include: ["levels"],
     });
-    res.send(dataObjects);
+
+    if (!dataObject) {
+        res.status(404).send('Not found')
+        return;
+    }
+
+    res.send(dataObject);
   } catch (err) {
     res
       .status(500)

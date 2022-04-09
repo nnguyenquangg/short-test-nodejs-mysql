@@ -1,21 +1,19 @@
 const express = require("express");
 const cors = require("cors");
+const db = require('./app/models/db')
 
-const app = express();
+const server = express();
 
-app.use(cors());
+server.use(cors());
 
-app.use(express.json());
+server.use(express.json());
 
-app.use(express.urlencoded({ extended: true }));
+server.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
+server.get("/", (req, res) => {
   res.json("Hello world");
 });
 
-require("./app/routes/data-object.routes.js")(app);
+require("./app/routes/data-object.routes.js")(server);
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-});
+module.exports = server

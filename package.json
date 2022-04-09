@@ -4,13 +4,23 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:e2e": "cross-env NODE_ENV=test jest",
+    "start:dev": "nodemon index.js",
+    "start": "node index.js",
+    "migration:run": "node app/models/db.js up"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "express": "^4.17.1",
     "i": "^0.3.7",
     "mysql": "^2.17.1",
@@ -19,5 +29,10 @@
     "npm": "^8.6.0",
     "path": "^0.12.7",
     "sequelize": "^6.18.0"
+  },
+  "devDependencies": {
+    "faker": "^6.6.6",
+    "jest": "^27.5.1",
+    "supertest": "^6.2.2"
   }
 }
